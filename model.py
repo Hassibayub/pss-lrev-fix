@@ -1,6 +1,6 @@
 import csv, re, math
 import sklearn.metrics as sklm
-import fastText
+import fasttext as fastText
 import numpy as np
 
 from keras.utils import Sequence
