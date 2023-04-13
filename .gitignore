@@ -102,3 +102,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+
+
+# Project specific
+tobacco800/
+.DS_Store
+.vscode/
