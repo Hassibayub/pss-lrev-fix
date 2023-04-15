@@ -1,9 +1,10 @@
 import csv, re, math
 import sklearn.metrics as sklm
-import fastText
+import fasttext as fastText
 import numpy as np
 
-from keras.preprocessing.image import img_to_array, load_img
+# from keras.preprocessing.image import img_to_array, load_img
+from tensorflow.keras.utils import img_to_array, load_img
 from keras.applications.vgg16 import VGG16
 from keras.applications.vgg16 import preprocess_input
 from keras.optimizers import Nadam, Adam, RMSprop
