@@ -7,6 +7,7 @@ import os
 import json
 
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 from keras.utils import Sequence
 from keras.models import Sequential, Model
@@ -62,6 +63,7 @@ def preprocess_raw_data(data_path: str) -> None:
     
     
 def preprocess_raw_data2(data_path: str) -> None:
+    """Preprocess raw data and save it as a csv file"""
     images_dir = os.path.join(data_path, "images")
     ocr_dir = os.path.join(data_path, "ocr_text")
     xml_dir = os.path.join(data_path, "xml")
@@ -131,7 +133,15 @@ def assign_type(left, top, width, height):
         return "caption"
     else:
         return "body"
-    
+
+
+def split_csv_into_80_20(csv_path):
+    """Split the csv file into train and test sets"""
+    df = pd.read_csv(csv_path)
+    train, test = train_test_split(df, test_size=0.2)
+    train.to_csv("data/train.csv", index=False)
+    test.to_csv("data/test.csv", index=False)
+
     
 def simple_tokenizer(textline):
     textline = re.sub(r'http\S+', 'URL', textline)
@@ -455,4 +465,6 @@ class ValidationCheckpoint(Callback):
 
 if __name__ == "__main__":
     data_path = 'data/'
+    csv_path = "data/data.csv"
     preprocess_raw_data2(data_path)
+    split_csv_into_80_20(csv_path)
