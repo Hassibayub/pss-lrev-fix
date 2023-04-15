@@ -54,19 +54,84 @@ def preprocess_raw_data(data_path: str) -> None:
     
     print(len(images), len(text_data))
     # print(images[0], text_data[0])
-
-    # create csv file, with columns (filename, image, text, class, binder, docid, type)
-    # binder for tobacco is always the same, 
-    # page class is first page or other page, 
-    # docid is the first part of the filename before the underscore
-    
     # merge two dictionaries into one based on the key
     data_combine = {k: (images[k], text_data[k]) for k in images.keys()}
     df = pd.DataFrame(data_combine).T.rename(columns={0: 'image', 1: 'text'})
     print(df.head())
     
     
-         
+    
+def preprocess_raw_data2(data_path: str) -> None:
+    images_dir = os.path.join(data_path, "images")
+    ocr_dir = os.path.join(data_path, "ocr_text")
+    xml_dir = os.path.join(data_path, "xml")
+    
+    
+    print("Loading images from: " + images_dir)
+    data = []
+
+    for filename in os.listdir(images_dir):
+
+        img_path = os.path.join(images_dir, filename)
+        ocr_path = os.path.join(ocr_dir, filename.split('.')[0] + ".json")
+        
+        img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)
+        with open(ocr_path, 'r') as f:
+            json_data = json.load(f)
+            # all_words = []
+            # for word in json_data['analyzeResult']['readResults'][0]['lines']:
+                # all_words.extend(word['text'].split())
+            # word_text = ' '.join(all_words)
+            
+        data.append((filename, img, json_data))
+    
+    # extract text region from ocr json
+    print("Extracting text regions from OCR data")
+    text_regions = []
+    
+    for filename, img, ocr_data in data:
+        for line in ocr_data['analyzeResult']['readResults'][0]['lines']:
+            for word in line['words']:
+                bounding_box = [int(x) for x in word['boundingBox']]
+                left = bounding_box[0]
+                top = bounding_box[1]
+                width = bounding_box[2] - bounding_box[0]
+                height = bounding_box[5] - bounding_box[1]
+                text = word['text']
+                text_regions.append((filename, left, top, width, height, text))
+    
+    # assign type 
+    print("Assigning type to text regions")
+    labeled_regions = []
+    for filename, left, top, width, height, text in text_regions:
+        docid = filename.split('.')[0]
+        class_label = 'paper'
+        type_label = assign_type(left, top, width, height)
+        labeled_regions.append((docid, class_label, type_label, text))
+    
+    # Add binder column
+    print("Adding binder column")
+    binder = "mybinder"
+    labeled_regions_with_binder = [(binder, docid, class_label, type_label, text) for docid, class_label, type_label, text in labeled_regions]
+
+    
+    # write CSV file
+    print("Writing CSV file")
+    # import csv 
+    csv_path = "data/dataset.csv"
+    with open(csv_path, 'w', newline='') as f:
+        writer = csv.writer(f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(['binder', 'docid', 'class', 'type', 'text'])
+        writer.writerows(labeled_regions_with_binder)
+    
+def assign_type(left, top, width, height):
+    if height > 50:
+        return "heading"
+    elif width > 300:
+        return "caption"
+    else:
+        return "body"
+    
     
 def simple_tokenizer(textline):
     textline = re.sub(r'http\S+', 'URL', textline)
@@ -390,4 +455,4 @@ class ValidationCheckpoint(Callback):
 
 if __name__ == "__main__":
     data_path = 'data/'
-    preprocess_raw_data(data_path)
+    preprocess_raw_data2(data_path)
