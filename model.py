@@ -100,6 +100,7 @@ def preprocess_raw_data2(data_path: str) -> None:
                 width = bounding_box[2] - bounding_box[0]
                 height = bounding_box[5] - bounding_box[1]
                 text = word['text']
+                text = re.sub(r',', '', text) # remove commas 
                 text_regions.append((filename, left, top, width, height, text))
     
     # assign type 
@@ -127,6 +128,7 @@ def preprocess_raw_data2(data_path: str) -> None:
         writer.writerows(labeled_regions_with_binder)
     
 def assign_type(left, top, width, height):
+    """Assign type to text region"""
     if height > 50:
         return "heading"
     elif width > 300:
@@ -137,7 +139,8 @@ def assign_type(left, top, width, height):
 
 def split_csv_into_80_20(csv_path):
     """Split the csv file into train and test sets"""
-    df = pd.read_csv(csv_path)
+    print("Splitting CSV file into train and test sets")
+    df = pd.read_csv(csv_path, dtype={'binder': str, 'docid': str, 'class': str, 'type': str, 'text': str})
     train, test = train_test_split(df, test_size=0.2)
     train.to_csv("data/train.csv", index=False)
     test.to_csv("data/test.csv", index=False)
