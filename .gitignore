@@ -109,3 +109,4 @@ venv.bak/
 tobacco800/
 .DS_Store
 .vscode/
+data/

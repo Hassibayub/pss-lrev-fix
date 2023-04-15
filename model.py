@@ -2,6 +2,11 @@ import csv, re, math
 import sklearn.metrics as sklm
 import fasttext as fastText
 import numpy as np
+import cv2 as cv
+import os 
+import json
+
+import pandas as pd
 
 from keras.utils import Sequence
 from keras.models import Sequential, Model
@@ -9,12 +14,60 @@ from keras.layers import *
 from keras.utils import *
 from keras.callbacks import ModelCheckpoint, Callback
 
-
 nb_embedding_dims = 300 # ft.get_dimension()
 nb_sequence_length = 150
 word_vectors_ft = {}
 label2Idx = {'FirstPage' : 1, 'NextPage' : 0}
 
+
+def preprocess_raw_data(data_path: str) -> None:
+    # load tiff images in a list
+    text_data_path = os.path.join(data_path, "ocr_text")
+    images_data_path = os.path.join(data_path, "images")
+    
+    print("Loading images from: " + images_data_path)
+    images = {}
+    for filename in os.listdir(images_data_path):
+        if filename.endswith(".tif"):
+            img = cv.imread(os.path.join(images_data_path, filename), cv.IMREAD_GRAYSCALE)
+            img = cv.resize(img, (224, 224))
+            img = cv.GaussianBlur(img, (5, 5), 0)
+            img = cv.threshold(img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)[1]
+            filename_split = filename.split('.')[0]
+            images[filename_split] = img
+    
+    # load text data
+    print("Loading text data from: " + text_data_path)
+    text_data = {}
+    for filename in os.listdir(text_data_path):
+        if filename.endswith(".json"):
+            with open(os.path.join(text_data_path, filename), 'r') as f:
+                json_data = json.load(f)
+                
+                all_words = []
+                for word in json_data['analyzeResult']['readResults'][0]['lines']:
+                    all_words.extend(word['text'].split())
+                word_text = ' '.join(all_words)
+                
+                filename_split = filename.split('.')[0]
+                text_data[filename_split] = word_text
+    
+    print(len(images), len(text_data))
+    # print(images[0], text_data[0])
+
+    # create csv file, with columns (filename, image, text, class, binder, docid, type)
+    # binder for tobacco is always the same, 
+    # page class is first page or other page, 
+    # docid is the first part of the filename before the underscore
+    
+    # merge two dictionaries into one based on the key
+    data_combine = {k: (images[k], text_data[k]) for k in images.keys()}
+    df = pd.DataFrame(data_combine).T.rename(columns={0: 'image', 1: 'text'})
+    print(df.head())
+    
+    
+         
+    
 def simple_tokenizer(textline):
     textline = re.sub(r'http\S+', 'URL', textline)
     words = re.compile(r'[#\w-]+|[^#\w-]+', re.UNICODE).findall(textline.strip())
@@ -333,3 +386,8 @@ class ValidationCheckpoint(Callback):
             self.max_metrics = eval_metrics   # all metrics
             self.model.save(self.filepath)
 
+
+
+if __name__ == "__main__":
+    data_path = 'data/'
+    preprocess_raw_data(data_path)
