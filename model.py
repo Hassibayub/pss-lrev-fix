@@ -100,7 +100,10 @@ def preprocess_raw_data2(data_path: str) -> None:
                 width = bounding_box[2] - bounding_box[0]
                 height = bounding_box[5] - bounding_box[1]
                 text = word['text']
+                
                 text = re.sub(r',', '', text) # remove commas 
+                text = re.sub(r';', '', text) # remove semicolons
+                 
                 text_regions.append((filename, left, top, width, height, text))
     
     # assign type 
@@ -122,10 +125,13 @@ def preprocess_raw_data2(data_path: str) -> None:
     print("Writing CSV file")
     # import csv 
     csv_path = "data/dataset.csv"
-    with open(csv_path, 'w', newline='') as f:
-        writer = csv.writer(f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(['binder', 'docid', 'class', 'type', 'text'])
-        writer.writerows(labeled_regions_with_binder)
+    df = pd.DataFrame(labeled_regions_with_binder, columns=['binder', 'docid', 'class', 'type', 'text'])
+    df.to_csv(csv_path, sep=';', index=False)
+
+    # with open(csv_path, 'w', newline='') as f:
+        # writer = csv.writer(f, delimiter=';')
+        # writer.writerow(['binder', 'docid', 'class', 'type', 'text'])
+        # writer.writerows(labeled_regions_with_binder)
     
 def assign_type(left, top, width, height):
     """Assign type to text region"""
@@ -164,8 +170,51 @@ def read_csv_data(csvfile, csvformat = "archive20k", return_DC = False):
     prevPageText = ""
     prevPageClass = ""
     
+    data = pd.read_csv(csvfile, delimiter=';', skiprows=1, header=None, encoding='UTF-8')
+    for instance in data.itertuples():
+        # "binder";"docid";"class";"type";"text"
+        if prevBinder == instance[1]:
+            prevPage = prevPageText
+        else:
+            prevPage = ""
+                
+        if csvformat == "Tobacco800":
+            data_instances.append([instance[2], instance[3], instance[4], prevPage, instance[1]])
+            prevBinder = instance[1]
+            prevPageText = instance[4]
+            prevPageClass = instance[3]
+        else:
+            if return_DC:
+                if instance[3] == "FirstPage" or prevPageClass == "FirstPage":
+                    data_instances.append([instance[2], instance[3], instance[5], prevPage, instance[1], instance[4]])
+                    instance_ids.append(current_id)
+            else:
+                data_instances.append([instance[2], instance[3], instance[5], prevPage, instance[1]])
+            prevBinder = instance[1]
+            prevPageText = instance[5]
+            prevPageClass = instance[3]
+                
+        current_id += 1
+        
+    if len(instance_ids) > 0:
+        return data_instances, instance_ids
+    else:
+        return data_instances
+
+    
+    
+def _read_csv_data(csvfile, csvformat = "archive20k", return_DC = False):
+    
+    data_instances = []
+    instance_ids = []
+    current_id = 0
+    
+    prevBinder = ""
+    prevPageText = ""
+    prevPageClass = ""
+    
     with open(csvfile, 'r', encoding='UTF-8') as f:
-        datareader = csv.reader(f, delimiter=';', quotechar='"')
+        datareader = csv.reader(f, delimiter=';')
         next(datareader)
         for instance in datareader:
             # "binder";"docid";"class";"type";"text"
