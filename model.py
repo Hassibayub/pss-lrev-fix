@@ -465,6 +465,6 @@ class ValidationCheckpoint(Callback):
 
 if __name__ == "__main__":
     data_path = 'data/'
-    csv_path = "data/data.csv"
+    csv_path = "data/dataset.csv"
     preprocess_raw_data2(data_path)
     split_csv_into_80_20(csv_path)
