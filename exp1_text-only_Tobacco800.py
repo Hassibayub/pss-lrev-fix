@@ -31,8 +31,8 @@ reload(model)
 # In[5]:
 
 
-data_train = model.read_csv_data("data/Tobacco800/dataset.train", csvformat="Tobacco800")
-data_test = model.read_csv_data("data/Tobacco800/dataset.test", csvformat="Tobacco800")
+data_train = model.read_csv_data("data/train.csv", csvformat="Tobacco800")
+data_test = model.read_csv_data("data/test.csv", csvformat="Tobacco800")
 
 
 # In[7]:
