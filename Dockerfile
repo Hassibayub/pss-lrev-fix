@@ -4,7 +4,8 @@ FROM tensorflow/tensorflow:latest-gpu
 RUN ["apt", "update"] 
 RUN ["apt", "upgrade", "-y"]
 
-RUN ["pip", "install", "--upgrade", "pip"] 
+RUN ["pip", "install", "--upgrade", "pip"]
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 
 
 WORKDIR /src

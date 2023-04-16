@@ -113,3 +113,6 @@ data/images/
 data/ocr_text/
 data/xml/
 
+.idea
+/data/wiki.en.vec
+/data/wiki.en.bin
