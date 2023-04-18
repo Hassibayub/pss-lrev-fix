@@ -26,8 +26,8 @@ word_vectors_ft = {}
 label2Idx = {'FirstPage' : 1, 'NextPage' : 0}
 
 img_dims = {'tobacco':299, 'other':299}
-img_path_template = 'data/Tobacco800/images/%s.tif.small.png'
-img_path_template = 'data/archive20k/images/%s.png'
+# img_path_template = 'data/images/aao54e00_1.tif'
+# img_path_template = 'data/archive20k/images/%s.png'
 
 def simple_tokenizer(textline):
     textline = re.sub(r'http\S+', 'URL', textline)
