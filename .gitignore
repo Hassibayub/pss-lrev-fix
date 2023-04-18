@@ -115,3 +115,7 @@ data/xml/
 embedding/
 *.hdf5
 *.csv
+
+.idea
+/data/wiki.en.vec
+/data/wiki.en.bin

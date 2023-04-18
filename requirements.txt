@@ -2,3 +2,5 @@ keras
 tensorflow
 scikit-learn
 fasttext
+pandas
+opencv-python
