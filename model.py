@@ -178,7 +178,6 @@ def preprocess_raw_data3(data_path: str) -> None:
     print("Exporting csv file")
     df.to_csv('data/dataset.csv', sep=';', index=False)
     
-
 def assign_class_label(row: str) -> str:
     # get index value
     docid = row.name
@@ -192,9 +191,7 @@ def assign_class_label(row: str) -> str:
         else:
             return 'FirstPage'
     else:
-        return 'FirstPage'
-        
-    
+        return 'FirstPage'    
     
 def load_files_no_extension(data_path: str) -> list:
     print("Loading filenames without extension")
