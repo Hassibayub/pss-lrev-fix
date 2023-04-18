@@ -34,7 +34,7 @@ reload(model_img)
 
 
 img_dim = (224,224)
-model_img.img_path_template = 'data/Tobacco800/images/%s.tif.small.png'
+model_img.img_path_template = 'data/images/%s.tif'
 
 
 
@@ -140,7 +140,7 @@ print(avg_acc)
 
 
 reload(model_img)
-model_img.img_path_template = 'data/Tobacco800/images/%s.tif.small.png'
+# model_img.img_path_template = 'data/Tobacco800/images/%s.tif.small.png'
 
 
 
