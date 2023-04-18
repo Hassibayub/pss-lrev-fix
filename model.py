@@ -124,6 +124,10 @@ def preprocess_raw_data2(data_path: str) -> None:
     # import csv 
     csv_path = "data/dataset.csv"
     df = pd.DataFrame(labeled_regions_with_binder, columns=['binder', 'docid', 'class', 'type', 'text'])
+    
+    # rearrange columns
+    df = df[['binder', 'docid', 'class', 'type', 'text']]
+    
     df.to_csv(csv_path, sep=';', index=False)
 
     # with open(csv_path, 'w', newline='') as f:
@@ -176,6 +180,10 @@ def preprocess_raw_data3(data_path: str) -> None:
     
     # export csv
     print("Exporting csv file")
+    
+    # rearrange columns
+    df = df[['binder', 'docid', 'class', 'type', 'text']]
+    
     df.to_csv('data/dataset.csv', sep=';', index=False)
     
 def assign_class_label(row: str) -> str:
@@ -216,6 +224,11 @@ def split_csv_into_80_20(csv_path):
     print("Splitting CSV file into train and test sets")
     df = pd.read_csv(csv_path, delimiter=';')
     train, test = train_test_split(df, test_size=0.2)
+    
+    # rearrange columns
+    train = train[['binder', 'docid', 'class', 'type', 'text']]
+    test = test[['binder', 'docid', 'class', 'type', 'text']]
+    
     train.to_csv("data/train.csv", index=False, sep=';')
     test.to_csv("data/test.csv", index=False, sep=';')
 
