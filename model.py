@@ -132,21 +132,21 @@ def preprocess_raw_data2(data_path: str) -> None:
         # writer.writerows(labeled_regions_with_binder)
 
 def preprocess_raw_data3(data_path: str) -> None:
+    """Preprocess raw data and save it as a csv file"""
 
     images_dir = os.path.join(data_path, "images")
-    ocr_dir = os.path.join(data_path, "ocr_text")
-    xml_dir = os.path.join(data_path, "xml")
+    text_data_path = os.path.join(data_path, "ocr_text")
     
     # load filename without extension
     files_no_ext = load_files_no_extension(images_dir)
 
     df = pd.DataFrame(columns=['binder', 'docid', 'class', 'type', 'text'])
-    
     df['docid'] = files_no_ext
     df.set_index('docid', inplace=True)
     
     
     # load text data from ocrtxt files
+    print("Loading text data from: " + text_data_path)
     for file in files_no_ext:
         ocr_file_path = os.path.join('data', 'ocr_text', file + '.json')
         
@@ -163,13 +163,10 @@ def preprocess_raw_data3(data_path: str) -> None:
         
         df.loc[file, 'text'] = page_text
     
-    # determine class label
+    # Adding const values to df
+    print("Adding const values to df")
     df['class'] = df.apply(assign_class_label, axis=1)
-    
-    # add type "paper" to all
     df['type'] = 'paper'
-    
-    # Add binder "mybinder" to all
     df['binder'] = 'mybinder'
     
     # replace semicolons and commas from df['text']
@@ -178,6 +175,7 @@ def preprocess_raw_data3(data_path: str) -> None:
     df.reset_index(inplace=True)
     
     # export csv
+    print("Exporting csv file")
     df.to_csv('data/dataset.csv', sep=';', index=False)
     
 
@@ -198,10 +196,8 @@ def assign_class_label(row: str) -> str:
         
     
     
-    
-    
-    
 def load_files_no_extension(data_path: str) -> list:
+    print("Loading filenames without extension")
     filenames = []
     for filename in os.listdir(data_path):
         filenames.append(filename.split('.')[0])
