@@ -112,4 +112,6 @@ tobacco800/
 data/images/
 data/ocr_text/
 data/xml/
-
+embedding/
+*.hdf5
+*.csv

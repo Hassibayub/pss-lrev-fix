@@ -60,8 +60,6 @@ def preprocess_raw_data(data_path: str) -> None:
     df = pd.DataFrame(data_combine).T.rename(columns={0: 'image', 1: 'text'})
     print(df.head())
     
-    
-    
 def preprocess_raw_data2(data_path: str) -> None:
     """Preprocess raw data and save it as a csv file"""
     images_dir = os.path.join(data_path, "images")
@@ -132,6 +130,83 @@ def preprocess_raw_data2(data_path: str) -> None:
         # writer = csv.writer(f, delimiter=';')
         # writer.writerow(['binder', 'docid', 'class', 'type', 'text'])
         # writer.writerows(labeled_regions_with_binder)
+
+def preprocess_raw_data3(data_path: str) -> None:
+
+    images_dir = os.path.join(data_path, "images")
+    ocr_dir = os.path.join(data_path, "ocr_text")
+    xml_dir = os.path.join(data_path, "xml")
+    
+    # load filename without extension
+    files_no_ext = load_files_no_extension(images_dir)
+
+    df = pd.DataFrame(columns=['binder', 'docid', 'class', 'type', 'text'])
+    
+    df['docid'] = files_no_ext
+    df.set_index('docid', inplace=True)
+    
+    
+    # load text data from ocrtxt files
+    for file in files_no_ext:
+        ocr_file_path = os.path.join('data', 'ocr_text', file + '.json')
+        
+        with open(ocr_file_path, 'r') as f:
+            json_data = json.load(f)
+
+        json_data_lines = json_data['analyzeResult']['readResults'][0]['lines']
+        
+        page_text = []
+        for line in json_data_lines:
+            page_text.append(line['text'])
+        
+        page_text = ' '.join(page_text)
+        
+        df.loc[file, 'text'] = page_text
+    
+    # determine class label
+    df['class'] = df.apply(assign_class_label, axis=1)
+    
+    # add type "paper" to all
+    df['type'] = 'paper'
+    
+    # Add binder "mybinder" to all
+    df['binder'] = 'mybinder'
+    
+    # replace semicolons and commas from df['text']
+    df['text'] = df['text'].str.replace(r',', '').str.replace(r';', '')
+    
+    df.reset_index(inplace=True)
+    
+    # export csv
+    df.to_csv('data/dataset.csv', sep=';', index=False)
+    
+
+def assign_class_label(row: str) -> str:
+    # get index value
+    docid = row.name
+    res_group = re.search(r'[-_]\d$', docid)
+    if res_group:
+        res = res_group.group(0)
+        page_no = re.sub(r'[-_]', '', res)
+
+        if int(page_no) > 1:
+            return 'NextPage'
+        else:
+            return 'FirstPage'
+    else:
+        return 'FirstPage'
+        
+    
+    
+    
+    
+    
+def load_files_no_extension(data_path: str) -> list:
+    filenames = []
+    for filename in os.listdir(data_path):
+        filenames.append(filename.split('.')[0])
+    
+    return filenames
     
 def assign_type(left, top, width, height):
     """Assign type to text region"""
@@ -146,10 +221,10 @@ def assign_type(left, top, width, height):
 def split_csv_into_80_20(csv_path):
     """Split the csv file into train and test sets"""
     print("Splitting CSV file into train and test sets")
-    df = pd.read_csv(csv_path, dtype={'binder': str, 'docid': str, 'class': str, 'type': str, 'text': str})
+    df = pd.read_csv(csv_path, delimiter=';')
     train, test = train_test_split(df, test_size=0.2)
-    train.to_csv("data/train.csv", index=False)
-    test.to_csv("data/test.csv", index=False)
+    train.to_csv("data/train.csv", index=False, sep=';')
+    test.to_csv("data/test.csv", index=False, sep=';')
 
     
 def simple_tokenizer(textline):
@@ -518,5 +593,5 @@ class ValidationCheckpoint(Callback):
 if __name__ == "__main__":
     data_path = 'data/'
     csv_path = "data/dataset.csv"
-    preprocess_raw_data2(data_path)
+    preprocess_raw_data3(data_path)
     split_csv_into_80_20(csv_path)
